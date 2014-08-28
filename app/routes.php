@@ -15,3 +15,7 @@ Route::get('/', function()
 {
 	return View::make('hello');
 });
+Route::get('sentry/user',function(){
+    $user=Sentry::getUserProvider()->findAll();
+    return var_dump($user);
+});
