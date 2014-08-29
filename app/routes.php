@@ -19,3 +19,7 @@ Route::get('sentry/user',function(){
     $user=Sentry::getUserProvider()->findAll();
     return var_dump($user);
 });
+//ユーザー登録
+Route::get('login/adduser/{email}/{password}','LoginController@adduser');
+//ログイン
+Route::get('login/login/{email}/{password}','LoginController@login');
