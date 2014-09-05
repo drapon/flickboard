@@ -6,12 +6,23 @@ class LoginController extends BaseController {
 	{
 		try {
 
-			Sentry::register(array(
+			$user=Sentry::register(array(
 	    		'email'    => $email,
 	    		'password' => $password,
 			));
 			$activationCode = $user->getActivationCode();
-		
+
+			//メール送信
+			$data['name'] = '林龍一';
+			$data['activate'] = $activationCode;
+			
+			$user->email = $email;
+
+ 			Mail::send('emails.activate',$data,function($m) use ($user){
+ 			$m->to($user->email)->subject('仮登録：メールアドレスをご確認ください');
+ 			});
+ 			echo 'ユーザーが新しく作成されました';
+
 		}
 		catch (Cartalyst\Sentry\Users\LoginRequiredException $e)
 		{
@@ -23,44 +34,75 @@ class LoginController extends BaseController {
 		}
 		catch (Cartalyst\Sentry\Users\UserExistsException $e)
 		{
-		    echo 'User with this login already exists.';
+		    echo 'ユーザーは既に存在しています。';
 		}
 
-	}
 
-	public function login($email,$password)
+	}
+	public function activate($activate)
 	{
 		try
 		{
-		    // Find the user using the user id
-		    $user = Sentry::findUserById(1);
+    		$user = Sentry::findUserByActivationCode($activate);
 
-		    // Log the user in
-		    Sentry::login($user, false);
-		}
-		catch (Cartalyst\Sentry\Users\LoginRequiredException $e)
-		{
-		    echo 'Login field is required.';
+    		if ($user->attemptActivation($activate))
+    		{
+        		// User activation passed
+        		echo 'ユーザーはアクティベートされました';
+    		}
+    		else
+    		{
+        		// User activation failed
+        		echo 'アクティーベート失敗';
+    		}
 		}
 		catch (Cartalyst\Sentry\Users\UserNotFoundException $e)
 		{
-		    echo 'User not found.';
+    		echo 'User was not found.';
+		}
+	}
+
+
+	public function login($email,$password)
+	{
+		 try
+		{
+    // ログイン情報のセット
+    $credentials = array(
+        'email'    => $email,
+        'password' => $password,
+    );
+
+    // 認証します。
+    $user = Sentry::authenticate($credentials, false);
+    echo 'ようこそ'.$user->email.'さん<br>';
+    echo 'あなたのIDは'.$user->id.'です。';
+		}
+		catch (Cartalyst\Sentry\Users\LoginRequiredException $e)
+		{
+		    echo 'ログインフィールドは必須です。';
+		}
+		catch (Cartalyst\Sentry\Users\PasswordRequiredException $e)
+		{
+		    echo 'パスワードフィールドは必須です。';
+		}
+		catch (Cartalyst\Sentry\Users\UserNotFoundException $e)
+		{
+		    echo 'ユーザーが見つかりませんでした。';
 		}
 		catch (Cartalyst\Sentry\Users\UserNotActivatedException $e)
 		{
-		    echo 'User not activated.';
+		    echo 'ユーザーはアクティベートされていません。';
 		}
 
-		// Following is only needed if throttle is enabled
+		// The following is only required if throttle is enabled
 		catch (Cartalyst\Sentry\Throttling\UserSuspendedException $e)
 		{
-		    $time = $throttle->getSuspensionTime();
-
-		    echo "User is suspended for [$time] minutes.";
+		    echo 'ユーザー権限が停止されています。';
 		}
 		catch (Cartalyst\Sentry\Throttling\UserBannedException $e)
 		{
-		    echo 'User is banned.';
+		    echo '禁止ユーザーです。';
 		}
 	}
 

@@ -22,4 +22,13 @@ Route::get('sentry/user',function(){
 //ユーザー登録
 Route::get('login/adduser/{email}/{password}','LoginController@adduser');
 //ログイン
-Route::get('login/login/{email}/{password}','LoginController@login');
+Route::get('login/id/{email}/{password}','LoginController@login');
+Route::get('login/activate/{activate}','LoginController@activate');
+
+// Route::get('email',function(){
+//  $data['name']='林龍一';
+//  Mail::send('emails.test',$data,function($m){
+//  $m->to('ryuichi.hayashi@gmail.com','Ryuichi Hayashi')->subject('Welcome!');
+//  });
+//  return 'メールを送信しました。';
+// });
